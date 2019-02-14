@@ -4,7 +4,6 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.scenes.scene2d.utils.UIUtils;
 import io.piotrjastrzebski.ftftest.FTFGame;
-import sun.plugin.util.UIUtil;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
