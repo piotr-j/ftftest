@@ -2,20 +2,22 @@ package io.piotrjastrzebski.ftftest;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+
+import java.io.IOException;
+import java.util.Comparator;
 
 public class FTFGame extends ApplicationAdapter {
 	private static final String TAG = FTFGame.class.getSimpleName();
@@ -27,6 +29,8 @@ public class FTFGame extends ApplicationAdapter {
 	private final static String FONT_BOLD_ITALIC = "fonts/Roboto-BoldItalic.ttf";
 	private final static String FONT_THIN = "fonts/Roboto-Thin.ttf";
 	private final static String FONT_THIN_ITALIC = "fonts/Roboto-ThinItalic.ttf";
+//	private final static String[] FONTS = { FONT_BOLD, FONT_BOLD_ITALIC, FONT_THIN, FONT_THIN_ITALIC };
+	private final static String[] FONTS = { FONT_THIN_ITALIC };
 	private final static String CHARS = FreeTypeFontGenerator.DEFAULT_CHARS + "żźłóćąęńśŻŹŁÓĆĄĘŃŚ";
 
 	SpriteBatch batch;
@@ -40,7 +44,6 @@ public class FTFGame extends ApplicationAdapter {
 	@Override
 	public void create () {
 		camera = new OrthographicCamera();
-//		viewport = new ExtendViewport(WIDTH, HEIGHT, WIDTH * 4, HEIGHT * 4, camera);
 		viewport = new ExtendViewport(WIDTH, HEIGHT, camera);
 
 		batch = new SpriteBatch();
@@ -53,17 +56,26 @@ public class FTFGame extends ApplicationAdapter {
 		am.setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(am.getFileHandleResolver()));
 		am.setLoader(BitmapFont.class, new FreetypeFontLoader(am.getFileHandleResolver()));
 
-		load(FONT_BOLD);
-		load(FONT_BOLD_ITALIC);
-		load(FONT_THIN);
-		load(FONT_THIN_ITALIC);
-		am.finishLoading();
+		rebuild();
 
 //		font.getData().setScale(.5f);
 	}
 
-	private void load (final String font) {
-		float defaultFontSize = 32;
+	private void rebuild () {
+		fonts.clear();
+		am.clear();
+		final int size = 1024;
+		PixmapPacker packer = new PixmapPacker(size, size, Pixmap.Format.RGBA8888, 4, false);
+		for (String font : FONTS) {
+			load(font, packer);
+		}
+	}
+
+	private void load (final String font, final PixmapPacker packer) {
+		// figure out the size we want,
+		final float defaultFontSize = (float)HEIGHT/24f * (float)HEIGHT/(float)Gdx.graphics.getBackBufferHeight();
+
+		final String path = ".ftftest/fonts-"+MathUtils.round(defaultFontSize)+".png";
 
 		final FreetypeFontLoader.FreeTypeFontLoaderParameter parameter = new FreetypeFontLoader.FreeTypeFontLoaderParameter();
 		parameter.fontFileName = font;
@@ -73,19 +85,31 @@ public class FTFGame extends ApplicationAdapter {
 		parameter.fontParameters.characters += "żźłóćąęńśŻŹŁÓĆĄĘŃŚ";
 //		parameter.fontParameters.shadowOffsetX = Math.max(MathUtils.round(defaultFontSize/10), 1);
 //		parameter.fontParameters.shadowOffsetY = Math.max(MathUtils.round(defaultFontSize/10), 1);
+		// Nearest might be better
 		parameter.fontParameters.minFilter = Texture.TextureFilter.Linear;
 		parameter.fontParameters.magFilter = Texture.TextureFilter.Linear;
 //		parameter.fontParameters.shadowColor = new Color(0, 0, 0, 0.6f);
 //		parameter.fontParameters.spaceX = parameter.fontParameters.shadowOffsetX;
 //		parameter.fontParameters.spaceY = parameter.fontParameters.shadowOffsetY;
 		parameter.fontParameters.kerning = true;
+		parameter.fontParameters.packer = packer;
 
 		parameter.loadedCallback = new AssetLoaderParameters.LoadedCallback() {
 			@Override public void finishedLoading (AssetManager assetManager, String fileName, Class type) {
-				Gdx.app.log(TAG, "font loaded!");
 				BitmapFont bitmapFont = assetManager.get(fileName, BitmapFont.class);
-				bitmapFont.setUseIntegerPositions(false);
+//				bitmapFont.setUseIntegerPositions(false);
+				// scale the font so its pixel perfect
+//				float scale = (HEIGHT)/(float)Gdx.graphics.getBackBufferHeight();
+//				bitmapFont.getData().setScale(scale);
+				Gdx.app.log(TAG, "'" + font + "' loaded, regions = " + bitmapFont.getRegions().size);
 				fonts.put(font, bitmapFont);
+				// bad!
+				if (fonts.size == FONTS.length) {
+					Texture texture = bitmapFont.getRegion().getTexture();
+					Pixmap pixmap = texture.getTextureData().consumePixmap();
+					PixmapIO.writePNG(Gdx.files.external(path), pixmap);
+					packer.dispose();
+				}
 			}
 		};
 		am.load(font, BitmapFont.class, parameter);
@@ -95,15 +119,25 @@ public class FTFGame extends ApplicationAdapter {
 	public void render () {
 		Gdx.gl.glClearColor(.3f, .3f, .3f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+			rebuild();
+		}
+		am.update();
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-		float size = WIDTH * .5f;
+		batch.setColor(Color.WHITE);
+//		float size = WIDTH * .5f;
 //		batch.draw(img, WIDTH/2f - size/2, HEIGHT - size, size, size);
 
 		float y = HEIGHT * .95f;
-		for (ObjectMap.Entry<String, BitmapFont> font : fonts) {
-			font.value.draw(batch, CHARS, WIDTH * .05f, y , WIDTH * .9f, Align.left, true);
-			y -= HEIGHT/5f;
+		float yStep = HEIGHT / 5f;
+
+		for (String font : FONTS) {
+			BitmapFont bitmapFont = fonts.get(font, null);
+			if (bitmapFont != null) {
+				bitmapFont.draw(batch, CHARS, WIDTH * .05f, y, WIDTH * .9f, Align.left, true);
+				y -= yStep;
+			}
 		}
 
 //		font.draw(batch, CHARS, 0, HEIGHT/4f, WIDTH, Align.left, true);

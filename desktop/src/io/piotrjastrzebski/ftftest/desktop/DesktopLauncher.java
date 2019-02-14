@@ -9,11 +9,11 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		if (UIUtils.isMac) {
-			config.width = FTFGame.WIDTH / 2;
-			config.height = FTFGame.HEIGHT / 2;
+			config.width = (int)(FTFGame.WIDTH * .33);
+			config.height = (int)(FTFGame.HEIGHT * .33);
 		} else {
-			config.width = FTFGame.WIDTH;
-			config.height = FTFGame.HEIGHT;
+			config.width = (int)(FTFGame.WIDTH  * .7);
+			config.height = (int)(FTFGame.HEIGHT * .7);
 		}
 		config.title = "FTF Test";
 		config.useHDPI = true;
