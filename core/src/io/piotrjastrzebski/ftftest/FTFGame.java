@@ -73,9 +73,8 @@ public class FTFGame extends ApplicationAdapter {
 		// figure out the size we want
 		// In this case we want the size to be 1/24 of the height
 		// then we scale it so it is pixel perfect on current display
-		// doesnt work ...
-//		final float defaultFontSize = (float)HEIGHT/24f * (float)HEIGHT/(float)Gdx.graphics.getHeight();
-		final float defaultFontSize = (float)HEIGHT/24f;// * (float)Gdx.graphics.getHeight()/HEIGHT;
+		float bbh = Gdx.graphics.getBackBufferHeight();
+		final float defaultFontSize = bbh/24f * (float)HEIGHT/bbh;
 
 		final String path = ".ftftest/fonts-"+MathUtils.round(defaultFontSize)+".png";
 
