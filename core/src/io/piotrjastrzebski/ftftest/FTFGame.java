@@ -6,18 +6,16 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.PixmapPacker;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
-
-import java.io.IOException;
-import java.util.Comparator;
 
 public class FTFGame extends ApplicationAdapter {
 	private static final String TAG = FTFGame.class.getSimpleName();
@@ -39,7 +37,7 @@ public class FTFGame extends ApplicationAdapter {
 	OrthographicCamera camera;
 	AssetManager am;
 
-	ObjectMap<String, BitmapFont> fonts = new ObjectMap<String, BitmapFont>();
+	ObjectMap<String, BitmapFont> fonts = new ObjectMap<>();
 
 	@Override
 	public void create () {
@@ -72,8 +70,12 @@ public class FTFGame extends ApplicationAdapter {
 	}
 
 	private void load (final String font, final PixmapPacker packer) {
-		// figure out the size we want,
-		final float defaultFontSize = (float)HEIGHT/24f * (float)HEIGHT/(float)Gdx.graphics.getBackBufferHeight();
+		// figure out the size we want
+		// In this case we want the size to be 1/24 of the height
+		// then we scale it so it is pixel perfect on current display
+		// doesnt work ...
+//		final float defaultFontSize = (float)HEIGHT/24f * (float)HEIGHT/(float)Gdx.graphics.getHeight();
+		final float defaultFontSize = (float)HEIGHT/24f;// * (float)Gdx.graphics.getHeight()/HEIGHT;
 
 		final String path = ".ftftest/fonts-"+MathUtils.round(defaultFontSize)+".png";
 
@@ -150,6 +152,7 @@ public class FTFGame extends ApplicationAdapter {
 		camera.position.x = WIDTH / 2f;
 		camera.position.y = HEIGHT / 2f;
 		camera.update();
+		if (true) rebuild();
 	}
 
 	@Override

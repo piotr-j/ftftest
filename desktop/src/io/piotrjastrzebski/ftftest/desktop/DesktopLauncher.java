@@ -8,13 +8,14 @@ import io.piotrjastrzebski.ftftest.FTFGame;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+		double scale = 1.0;
 		if (UIUtils.isMac) {
-			config.width = (int)(FTFGame.WIDTH * .33);
-			config.height = (int)(FTFGame.HEIGHT * .33);
+			scale = .33;
 		} else {
-			config.width = (int)(FTFGame.WIDTH  * .7);
-			config.height = (int)(FTFGame.HEIGHT * .7);
+			scale = .7;
 		}
+		config.width = (int)(FTFGame.WIDTH * scale);
+		config.height = (int)(FTFGame.HEIGHT * scale);
 		config.title = "FTF Test";
 		config.useHDPI = true;
 		new LwjglApplication(new FTFGame(), config);
