@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -73,9 +74,8 @@ public class FTFGame extends ApplicationAdapter {
 		// figure out the size we want
 		// In this case we want the size to be 1/24 of the height
 		// then we scale it so it is pixel perfect on current display
-//		float bbh = Gdx.graphics.getBackBufferHeight();
-//		final float defaultFontSize = bbh/24f * (float)HEIGHT/bbh;
-		final float defaultFontSize = (float)HEIGHT/24f;
+		final float scale = Gdx.graphics.getHeight() / (float)HEIGHT;
+		final float defaultFontSize = HEIGHT/24f * scale;
 
 		final String path = ".ftftest/fonts-"+MathUtils.round(defaultFontSize)+".png";
 
@@ -99,14 +99,15 @@ public class FTFGame extends ApplicationAdapter {
 		parameter.loadedCallback = new AssetLoaderParameters.LoadedCallback() {
 			@Override public void finishedLoading (AssetManager assetManager, String fileName, Class type) {
 				BitmapFont bitmapFont = assetManager.get(fileName, BitmapFont.class);
-//				bitmapFont.setUseIntegerPositions(false);
+				bitmapFont.setUseIntegerPositions(false);
 				// scale the font so its pixel perfect
-//				float scale = (HEIGHT)/(float)Gdx.graphics.getBackBufferHeight();
-//				bitmapFont.getData().setScale(scale);
+				// we want *2 on retina due to scaling...
+				bitmapFont.getData().setScale(1/scale);
 				Gdx.app.log(TAG, "'" + font + "' loaded, regions = " + bitmapFont.getRegions().size);
 				fonts.put(font, bitmapFont);
 				// bad!
 				if (fonts.size == FONTS.length) {
+					Gdx.app.log(TAG, "saved " + path);
 					Texture texture = bitmapFont.getRegion().getTexture();
 					Pixmap pixmap = texture.getTextureData().consumePixmap();
 					PixmapIO.writePNG(Gdx.files.external(path), pixmap);
@@ -128,7 +129,7 @@ public class FTFGame extends ApplicationAdapter {
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.setColor(Color.WHITE);
-//		float size = WIDTH * .5f;
+//		float size = 100;
 //		batch.draw(img, WIDTH/2f - size/2, HEIGHT - size, size, size);
 
 		float y = HEIGHT * .95f;

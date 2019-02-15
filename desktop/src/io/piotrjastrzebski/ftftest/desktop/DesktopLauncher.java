@@ -10,7 +10,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		double scale = 1.0;
 		if (UIUtils.isMac) {
-			scale = .33;
+			scale = .5;
 		} else {
 			scale = .7;
 		}
